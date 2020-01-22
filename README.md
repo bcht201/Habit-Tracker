@@ -20,9 +20,7 @@
 
   
 # Stages:
-
 ## Stage 1
-- Establish basic DB structure 
 - Establish get request to 'SELECT *' to view database as first interaction (tested)
 - List out routes to get MVP
 
@@ -31,5 +29,7 @@
 
 ## Stage 3
 - Flesh out routes that have been listed out below (tested)
+
+
 
 
