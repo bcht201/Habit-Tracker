@@ -54,14 +54,14 @@
 ## Logic flowchart: 
 ### Initialisation (Add to task list)
 - Timeframe: as inputted
-- Deadline: daily(current time + 1 day 00:00)
+- Deadline: daily(current time + 1 day 00:00), Weekly (current time + 7 day 00:00)
 - Freq: as inputted
 - Completed: 0
 - Streak: 0
 
 ### Update (Mark as complete)
 - Timeframe: unchanged unless timeframe changed
-- Deadline: daily(current time + 1 day 00:00)
+- Deadline: daily(current time + 1 day 00:00), Weekly: unchanged unless deadline passed
 - Freq: unchanged unless manipulated
-- Completed: Completed ++ unless deadline passed
-- Streak: Streak++ unless deadline missed
+- Completed: Completed ++ / deadline passed
+- Streak: Streak++ / deadline missed
