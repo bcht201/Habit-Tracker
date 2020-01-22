@@ -1,0 +1,24 @@
+{
+  "name": "lap3project",
+  "version": "1.0.0",
+  "description": "For the rest of the week you will be working to create a habit tracker.\r Your website should have the following functionality for users:\r - Users should be able to choose a habit they want to track (e.g water, exercise, 8 hours of sleep) and choose the frequency at which they want to track the habit.\r - Users should be able to track a habit and mark it as complete for the day.\r - Users should be able to see if they have completed a habit for the day and see if they have a streak of completing their habits.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcht201/Lap3Project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bcht201/Lap3Project/issues"
+  },
+  "homepage": "https://github.com/bcht201/Lap3Project#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongodb": "^3.5.2"
+  }
+}
