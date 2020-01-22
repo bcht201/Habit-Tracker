@@ -31,6 +31,37 @@
 ## Stage 3
 - Flesh out routes that have been listed out below (tested)
 
+## DB structure
+- Person 1
+    - Name: X
+    - Activity: [
+        A1
+        A2
+        A3
+    ]
+- Person 2
+    ..
 
 
+# Evaluating completion when updating task
+- Timeframes: daily, weekly (Enum: fixed choices)
+- Deadline: Initialised on new entry, checked and updated on PUT(update request)
+- Frequency: keep track of how many completed submissions until marked finished
+- Completed: no. of times submitted as completed before deadline is reached
+- Streak: no. of times task marked completed within timeframe
 
+
+## Logic flowchart: 
+### Initialisation (Add to task list)
+- Timeframe: as inputted
+- Deadline: daily(current time + 1 day 00:00)
+- Freq: as inputted
+- Completed: 0
+- Streak: 0
+
+### Update (Mark as complete)
+- Timeframe: unchanged unless timeframe changed
+- Deadline: daily(current time + 1 day 00:00)
+- Freq: unchanged unless manipulated
+- Completed: Completed ++ unless deadline passed
+- Streak: Streak++ unless deadline missed
