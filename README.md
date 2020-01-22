@@ -23,6 +23,7 @@
 # Stages:
 ## Stage 1
 - Establish get request to 'SELECT *' to view database as first interaction (tested)
+- Implement logic for daily timeframe tasks
 - List out routes to get MVP
 
 ## Stage 2
