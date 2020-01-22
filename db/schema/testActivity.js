@@ -4,4 +4,4 @@ var testSchema = mongoose.Schema({
     title: {type: String}
 });
 
-module.exports = mongoose.model('TestEntry', testSchema);
+module.exports = mongoose.model('testActivity', testSchema);
