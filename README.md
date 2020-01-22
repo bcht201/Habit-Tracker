@@ -4,7 +4,8 @@
 
 ### User stories:
 - As a user, I should be able to add a habit that I want to track
-- As a user, I should be able to choose a habit that I have added to the list to track and choose the frequency at which they want to track the habit
+- As a user, I should be able to choose a habit that I have added to the list to track 
+- As a user, I should be able to choose the frequency at which I want to track the habit, i.e. how often I want to see it on my list of uncompleted tasks
 - As a user I should be able to track a habit and mark it as complete 
 - As a user I should be able to see a list of completed habits for the day
 - As a user I should be able to see if I have a streak of completing a specific habit

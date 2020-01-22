@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var activitySchema = mongoose.Schema({
-    title: {type: String}
+    name: {type: String}
 });
 
 module.exports = mongoose.model('Activity', activitySchema);

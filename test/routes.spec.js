@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 var chai = require ('chai');
 var chaiHTTP = require ('chai-http');
 const expect = chai.expect;
@@ -5,8 +6,8 @@ var mongoose = require ('mongoose');
 var app = require ('../app');
 
 var dbName = 'activityTest';
+var testSchema = require('../db/schema/activity_test');
 var mongoDB = `mongodb://127.0.0.1/${dbName}`;
-var testSchema = require('../db/schema/testActivity');
 
 var should = chai.should();
 chai.use(chaiHTTP);

@@ -3,10 +3,11 @@ var app = express();
 var bodyParser = require('body-parser');
 var port = 8080;
 var mongoose = require ('mongoose');
-var dbName = 'activity';
-var mongoDB = `mongodb://127.0.0.1/${dbName}`;
+var environment = process.env.NODE_ENV || 'development';
 
-var activity = require ('./db/schema/activity');
+var dbName = `activity_${environment}`;
+var activity = require (`./db/schema/activity_${environment}`);
+var mongoDB = `mongodb://127.0.0.1/${dbName}`;
 mongoose.connect(mongoDB, {useNewUrlParser : true});
 
 //Get the default connection
@@ -25,17 +26,10 @@ app.get('/showActivity', (req,res) =>{
     activity.find({}, '_id title', (err, entries)=>{
         if(err) console.log(err);
         console.log(entries);
+        console.log('dbName: ', dbName);
         res.json(entries);
     })
 })
-
-// app.get('/dropDB', (req,res) =>{
-//     activity.deleteMany({}, (err, entries)=>{
-//         if(err) console.log(err);
-//         console.log(entries);
-//         res.send("All deleted");
-//     })
-// })
 
 app.post('/newActivity', (req, res) =>{
     const newActivity = new activity(req.body);
@@ -46,6 +40,15 @@ app.post('/newActivity', (req, res) =>{
             entry: addedActivity
         })
     }).catch( err => console.log(err));
+})
+
+//To be removed when done 
+app.get('/dropDB', (req,res) =>{
+    activity.deleteMany({}, (err, entries)=>{
+        if(err) console.log(err);
+        console.log(entries);
+        res.send("All deleted");
+    })
 })
 
 app.listen(port, () => console.log(`Listening to port ${port}!!`));
