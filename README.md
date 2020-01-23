@@ -3,9 +3,8 @@
 ## For 3 days you will be working to create a habit tracker.
 
 ### User stories:
-- As a user, I should be able to add a habit that I want to track
 - As a user, I should be able to choose a habit that I have added to the list to track 
-- As a user, I should be able to choose the frequency at which I want to track the habit, i.e. how often I want to see it on my list of uncompleted tasks
+- As a user, I should be able to choose the frequency at which I want to track the habit, i.e. how often I want to see it on my list of uncompleted tasks or how many times I must complete it until it is finished
 - As a user I should be able to track a habit and mark it as complete 
 - As a user I should be able to see a list of completed habits for the day
 - As a user I should be able to see if I have a streak of completing a specific habit
@@ -55,23 +54,28 @@
 ## Logic flowchart: 
 ### Initialisation (Add to task list)
 - Timeframe: as inputted
-- Deadline: daily(current time + 1 day 00:00), Weekly (current time + 7 day 00:00)
+- Deadline: daily(current time + 1 day 00:00)
 - Freq: as inputted
 - Completed: 0
 - Streak: 0
 
 ### Update (Mark as complete)
-- Timeframe: unchanged unless timeframe changed
-- Deadline: daily(current time + 1 day 00:00), Weekly: unchanged unless deadline passed
-- Freq: unchanged unless manipulated
-- Completed: Completed ++ / deadline passed
-- Streak: Streak++ / deadline missed
+- Already completed && current time is before deadline == already done for the day
+- Not completed && current time is before deadline == completeToday++ or reset && streak++
+- Current time is after deadline > 1 day == reset (streak broken)
+- Current time is after deadline < 1 day && completed == keep streak, reset for new day
+- Current time is after deadline < 1 day && !completed == reset, streak broken
+
 
 # Routes
-## GET:
-- /showAllUsers
-- /habits/:userID
+## /user:
+- GET: / -> get all users in the database
+- GET: /:ID -> get a specific user in the database
+- POST: /addUser -> add new user to DB, requires req.body.name
 
-## POST:
-- /newUser
-- /newActivity
+## /activity:
+- GET: ?user=ID -> get all activities of a specific user
+- GET: ?user=ID&complete=true -> get all completed activities of a specific user
+- GET: ?user=ID&complete=false -> get all incomplete activities of a specific user
+- POST: /new -> add new activity to DB  
+* require Name of activity(req.body.name), Which user to add to(req.body.userID), frequency per day(req.body.frequency)

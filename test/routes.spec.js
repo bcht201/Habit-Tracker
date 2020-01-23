@@ -5,9 +5,9 @@ const expect = chai.expect;
 var mongoose = require ('mongoose');
 var app = require ('../app');
 
-var dbName = 'activityTest';
-var userTest = require (`../db/schema/user_schema_${process.env.NODE_ENV}`);
-var activityTest = require (`../db/schema/activity_schema_${process.env.NODE_ENV}`);
+var dbName = `habit_tracker_${process.env.NODE_ENV}`;
+var userTest = require ('../db/schema/user_schema');
+var activityTest = require ('../db/schema/activity_schema');
 var mongoDB = `mongodb://127.0.0.1/${dbName}`;
 
 var should = chai.should();
@@ -41,10 +41,10 @@ describe('Test suite: API Routes', function (){
         })
     })
 
-    describe('post /newUser', function(){
+    describe('post /users/addUser', function(){
         it('should add new user into users collection in DB', function(done){
             chai.request(app)
-            .post('/newUser')
+            .post('/users/addUser')
             .send({
                 name: 'Brian'
             })
@@ -60,10 +60,10 @@ describe('Test suite: API Routes', function (){
         })
     })
 
-    describe('get /showAllUsers', function(){
+    describe('get /users', function(){
         it('should return 1 user', function(done){
             chai.request(app)
-            .get('/showAllUsers')
+            .get('/users')
             .end(function(err, res){
                 res.body.should.be.a('array');
                 res.body.should.have.lengthOf(1);
@@ -72,34 +72,74 @@ describe('Test suite: API Routes', function (){
         });
     });
 
+    describe('get /users/:ID', function(){
+        it('should return 1 user', function(done){
+            chai.request(app)
+            .get(`/users/${testID}`)
+            .end(function(err, res){
+                console.log(res.body);
+                res.body.should.be.a('array');
+                res.body.should.have.lengthOf(1);
+                res.body[0].name.should.equal('Brian');
+                done();
+            })
+        });
+    });
+
     describe('post /newActivity', function(){
         it('should add new activity into db', function(done){
             chai.request(app)
-            .post('/newActivity')
+            .post('/activity/new')
             .send({
                 "userID": testID,
                 "name": "eating",
-                "frequency": "3",
-                "timeframe": "daily"
+                "frequency": "3"
             })
             .end(function(err, res){
+                console.log(res.body);
                 res.body.activities.should.have.lengthOf(1);
                 done();
             })
         })
     })
 
-    describe('get /habits/:id', function(){
+    describe('get /activity', function(){
         it('should return an array of activity info instead of just the ID', function(done){
             chai.request(app)
-            .get(`/habits/${testID}`)
+            .get(`/activity?user=${testID}`)
             .end(function(err, res){
-                res.body.activities.should.have.lengthOf(1);
-                res.body.activities[0].name.should.equal('eating');
-                res.body.activities[0].frequency.should.equal(3);
+                res.body.should.have.lengthOf(1);
+                res.body[0].name.should.equal('eating');
+                res.body[0].frequency.should.equal(3);
                 done();
             })
-        })
+        });
+        it('should return an array of activity info as it is incomplete', function(done){
+            chai.request(app)
+            .get(`/activity?user=${testID}&complete=false`)
+            .end(function(err, res){
+                res.body.should.have.lengthOf(1);
+                res.body[0].name.should.equal('eating');
+                res.body[0].frequency.should.equal(3);
+                done();
+            })
+        });
+        it('should return zero activity info as none are complete', function(done){
+            chai.request(app)
+            .get(`/activity?user=${testID}&complete=true`)
+            .end(function(err, res){
+                res.body.should.have.lengthOf(0);
+                done();
+            })
+        });
+        it('should return nothing when parameters are incorrectly inputted', function(done){
+            chai.request(app)
+            .get(`/activity?user=${testID}&complete=wrong`)
+            .end(function(err, res){
+                res.body.should.have.lengthOf(0);
+                done();
+            })
+        });
     })
 });
 
