@@ -6,7 +6,8 @@ var mongoose = require ('mongoose');
 var app = require ('../app');
 
 var dbName = 'activityTest';
-var testSchema = require('../db/schema/activity_test');
+var userTest = require (`../db/schema/user_schema_${process.env.NODE_ENV}`);
+var activityTest = require (`../db/schema/activity_schema_${process.env.NODE_ENV}`);
 var mongoDB = `mongodb://127.0.0.1/${dbName}`;
 
 var should = chai.should();
@@ -16,13 +17,21 @@ describe('Test suite: API Routes', function (){
     before(function (done){
         mongoose.connect(mongoDB, {useNewUrlParser : true});
         var db = mongoose.connection;
+        var testID;
         db.on('error', console.error.bind(console, 'MongoDB connection error:'));
         db.once('open', function (){
             console.log('Connected to test database...');
-            testSchema.deleteMany({}, (err, entries)=>{
+            userTest.deleteMany({}, (err)=>{
                 if(err) console.log(err);
-                console.log('DB resetted');
-            }).then(() => done());
+                console.log('User resetted');
+            })
+            .then(() =>{
+                activityTest.deleteMany({}, (err)=>{
+                    if(err) console.log(err);
+                    console.log('Activity resetted');
+                })
+            })
+            .then(()=> done());
         });
     });
     
@@ -32,13 +41,32 @@ describe('Test suite: API Routes', function (){
         })
     })
 
-    describe('get /showActivity', function(){
-        it('should return an empty db', function(done){
+    describe('post /newUser', function(){
+        it('should add new user into users collection in DB', function(done){
             chai.request(app)
-            .get('/showActivity')
+            .post('/newUser')
+            .send({
+                name: 'Brian'
+            })
+            .end(function(err, res){
+                testID = res.body.entry._id;
+                res.should.have.status(200);
+                res.body.should.have.property('entry');
+                res.body.entry.name.should.equal('Brian');
+                res.body.entry.activities.should.be.a('array');
+                res.body.entry.activities.should.eql([]);
+                done();
+            })
+        })
+    })
+
+    describe('get /showAllUsers', function(){
+        it('should return 1 user', function(done){
+            chai.request(app)
+            .get('/showAllUsers')
             .end(function(err, res){
                 res.body.should.be.a('array');
-                res.body.should.eql([]);
+                res.body.should.have.lengthOf(1);
                 done();
             })
         });
@@ -49,12 +77,26 @@ describe('Test suite: API Routes', function (){
             chai.request(app)
             .post('/newActivity')
             .send({
-                title: 'testing db insert'
+                "userID": testID,
+                "name": "eating",
+                "frequency": "3",
+                "timeframe": "daily"
             })
             .end(function(err, res){
-                res.should.have.status(200);
-                res.body.should.have.property('entry');
-                res.body.entry.title.should.equal('testing db insert');
+                res.body.activities.should.have.lengthOf(1);
+                done();
+            })
+        })
+    })
+
+    describe('get /habits/:id', function(){
+        it('should return an array of activity info instead of just the ID', function(done){
+            chai.request(app)
+            .get(`/habits/${testID}`)
+            .end(function(err, res){
+                res.body.activities.should.have.lengthOf(1);
+                res.body.activities[0].name.should.equal('eating');
+                res.body.activities[0].frequency.should.equal(3);
                 done();
             })
         })

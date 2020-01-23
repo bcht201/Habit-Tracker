@@ -1,14 +1,12 @@
 var mongoose = require('mongoose');
 
 var activitySchema = mongoose.Schema({
-    name: {type: String},
+    _id: mongoose.Schema.Types.ObjectId,
+    user: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    name: String,
     frequency: {type: Number},
     deadline: {type: String},
-    timeFrame: {
-        type: String,
-        enum: ['daily', 'weekly']
-    },
-    completedPerTimeframe: {type: Number},
+    completedNum: {type: Number},
     lastCompleted: {type: String},
     completed: {type: Boolean},
     streak: {type: Number}
