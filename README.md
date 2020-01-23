@@ -45,7 +45,7 @@
 
 
 # Evaluating completion when updating task
-- Timeframes: daily, weekly (Enum: fixed choices)
+- Timeframe: daily only
 - Deadline: Initialised on new entry, checked and updated on PUT(update request)
 - Frequency: keep track of how many completed submissions until marked finished
 - Completed: no. of times submitted as completed before deadline is reached
@@ -66,3 +66,12 @@
 - Freq: unchanged unless manipulated
 - Completed: Completed ++ / deadline passed
 - Streak: Streak++ / deadline missed
+
+# Routes
+## GET:
+- /showAllUsers
+- /habits/:userID
+
+## POST:
+- /newUser
+- /newActivity
