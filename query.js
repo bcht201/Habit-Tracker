@@ -1,10 +1,9 @@
-const User = require('./db/schema/user_schema');
-const Activity = require('./db/schema/activity_schema');
-var mongoose = require ('mongoose');
-const moment = require('moment');
 var environment = process.env.NODE_ENV || 'development';
-var dbName = `habit_tracker_${environment}`;
-var mongoDB = `mongodb://127.0.0.1/${dbName}`;
+const User = require(`./db/schema/user_schema_${environment}`);
+const Activity = require(`./db/schema/activity_schema_${environment}`);
+var mongoose = require ('mongoose');
+var moment = require('moment');
+var mongoDB = `mongodb://127.0.0.1/habit_tracker_${environment}`;
 mongoose.connect(mongoDB, {useNewUrlParser : true});
 
 //Get the default connection
@@ -44,18 +43,34 @@ const addUser = (req, res) =>{
 }
 
 const newActivity = (req, res)=>{
+    let deadlineVal;
+    let completedVal;
+    let streakVal;
+    let midnightTMR = moment().add(1 ,'days').startOf('day').toDate();
+
+    if(environment === 'test'){
+        deadlineVal = req.body.deadline;
+        completedVal = req.body.complete
+        streakVal = req.body.streak
+    }
+    else{
+        deadlineVal = midnightTMR;
+        completedVal = false;
+        streakVal = 0;
+    }
     let activityObj = new Activity({
         _id: new mongoose.Types.ObjectId(),
         userID: req.body.userID,
         name: req.body.name,
         frequency: req.body.frequency,
-        deadline: moment().add(1 ,'days').startOf('day'),
+        deadline: deadlineVal,
         completedTodayNum: 0,
         lastCompleted: null,
-        completedToday: false,
-        streak: 0
+        completedToday: completedVal,
+        streak: streakVal
     });
-    activityObj.save().then(addedActivity =>{
+    activityObj.save().then((addedActivity) =>{
+        console.log(addedActivity);
         User.findOneAndUpdate({_id: addedActivity.userID}, {$push: {activities: addedActivity._id}}, {new:true})
             .then(updatedUser =>{
                 console.log('updated user json', updatedUser);
@@ -85,30 +100,60 @@ const getUserActivities = (req, res)=>{
 }
 
 const completeActivity = (req, res) =>{
-    Activity.find({_id: req.params.activityID}, (err, results) =>{
-        if(results.completedToday && moment().isBefore(results.deadline)){
+    let activityID = req.params.activityID;
+    console.log('updating activity');
+    //Implement check/ update on fetch of activites as well
+    Activity.find({_id: activityID}, (err, results) =>{
+        if(err) res.status(500).send(err);
+        if(results[0].completedToday === true && moment().isBefore(results[0].deadline)){
+            console.log("already done today");
             res.json({
                 message: "Task already completed for today"
             });
         }
-        else if(!results.completedToday && moment().isBefore(results.deadline)){
-            //either completedTodayNum++, resetCTN && streak++
-            updateActivity(results.frequency, results.completedTodayNum);
-        }
-        else if(moment().isAfter(results.deadline)){
-            //Today is > 1 day after deadline == reset
-            //Did not meet goal and past last recorded deadline == reset
-            //results.completedToday && Today > deadline by less than 24 hours == update
+        else{
+            Activity.findOneAndUpdate({_id: activityID}, { $set: changes(results)}, {new:true})
+            .then((updatedActivity) =>{
+                console.log('updated activity', updatedActivity);
+                res.status(200).send(updatedActivity);
+            })
         }
     })
 }
 
-const resetActivity = (activityID) =>{
-    Activity.findOneAndUpdate({_id: activityID}, {$set: {
-        deadline: moment().add(1 ,'days').startOf('day'),
-        completedTodayNum: 1,
+const changes = (activity) =>{
+    let changes = {};
+    let completedTodayAdd1 = activity[0].completedTodayNum + 1;
+    let streakAdd1 = activity[0].streak + 1;
 
-    }})
+    if(moment().isAfter(activity[0].deadline)){
+        //After deadline > 1 day == reset
+        if(moment(activity[0].deadline).add(1, 'days').isBefore(moment()) || !activity[0].completedToday){
+            changes.streak = 0;
+        }
+        //After deadline < 1 day && completed previous day == continue streaking
+        //Either way have to reset count for today and completion status
+        changes.completedTodayNum = 1;
+        changes.completedToday= false;
+    }
+
+    //Not completed && before deadline
+    else if(moment().isBefore(activity[0].deadline)){
+        if(completedTodayAdd1 === activity[0].frequency){
+            console.log('streaking');
+            changes.streak = streakAdd1;
+            changes.completedTodayNum = 0;
+            changes.completedToday = true;
+            changes.lastCompleted = moment().toDate();
+        }
+        //Not completed && before deadline == +1 
+        else{
+            console.log('+1 task frequency');
+            changes.completedTodayNum = completedTodayAdd1;
+        }
+    }
+    changes.deadline = moment().add(1 ,'days').startOf('day').toDate();
+    return changes;
 }
 
 module.exports = {

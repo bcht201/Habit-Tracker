@@ -4,20 +4,24 @@ var chaiHTTP = require ('chai-http');
 const expect = chai.expect;
 var mongoose = require ('mongoose');
 var app = require ('../app');
+var moment = require('moment');
 
 var dbName = `habit_tracker_${process.env.NODE_ENV}`;
-var userTest = require ('../db/schema/user_schema');
-var activityTest = require ('../db/schema/activity_schema');
+var userTest = require ('../db/schema/user_schema_test');
+var activityTest = require ('../db/schema/activity_schema_test');
 var mongoDB = `mongodb://127.0.0.1/${dbName}`;
 
 var should = chai.should();
 chai.use(chaiHTTP);
 
 describe('Test suite: API Routes', function (){
+    var user1;
+    var activity1;
+    var activity2;
+    var activity3;
     before(function (done){
         mongoose.connect(mongoDB, {useNewUrlParser : true});
         var db = mongoose.connection;
-        var testID;
         db.on('error', console.error.bind(console, 'MongoDB connection error:'));
         db.once('open', function (){
             console.log('Connected to test database...');
@@ -49,7 +53,7 @@ describe('Test suite: API Routes', function (){
                 name: 'Brian'
             })
             .end(function(err, res){
-                testID = res.body.entry._id;
+                user1 = res.body.entry._id;
                 res.should.have.status(200);
                 res.body.should.have.property('entry');
                 res.body.entry.name.should.equal('Brian');
@@ -75,7 +79,7 @@ describe('Test suite: API Routes', function (){
     describe('get /users/:ID', function(){
         it('should return 1 user', function(done){
             chai.request(app)
-            .get(`/users/${testID}`)
+            .get(`/users/${user1}`)
             .end(function(err, res){
                 console.log(res.body);
                 res.body.should.be.a('array');
@@ -91,56 +95,166 @@ describe('Test suite: API Routes', function (){
             chai.request(app)
             .post('/activity/new')
             .send({
-                "userID": testID,
+                "userID": user1,
                 "name": "eating",
-                "frequency": "3"
+                "frequency": "3",
+                "deadline": moment().add(1 ,'days').startOf('day').toDate(),
+                "complete": false,
+                "streak": 0
             })
             .end(function(err, res){
-                console.log(res.body);
+                activity1 = res.body.activities[0];
                 res.body.activities.should.have.lengthOf(1);
                 done();
+            });
+        });
+        it('should the second activity into db', function(done){
+            chai.request(app)
+            .post('/activity/new')
+            .send({
+                "userID": user1,
+                "name": "drinking",
+                "frequency": "2",
+                "deadline": moment().startOf('day').toDate(),
+                "complete": true,
+                "streak": 1
             })
-        })
-    })
+            .end(function(err, res){
+                activity2 = res.body.activities[1];
+                res.body.activities.should.have.lengthOf(2);
+                done();
+            });
+        });
+        it('should the third activity into db', function(done){
+            chai.request(app)
+            .post('/activity/new')
+            .send({
+                "userID": user1,
+                "name": "coding",
+                "frequency": "100",
+                "deadline": moment().subtract(2 ,'days').startOf('day').toDate(),
+                "complete": true,
+                "streak": 3
+            })
+            .end(function(err, res){
+                activity3 = res.body.activities[2];
+                res.body.activities.should.have.lengthOf(3);
+                done();
+            });
+        });
+    });
 
     describe('get /activity', function(){
         it('should return an array of activity info instead of just the ID', function(done){
             chai.request(app)
-            .get(`/activity?user=${testID}`)
+            .get(`/activity?user=${user1}`)
             .end(function(err, res){
-                res.body.should.have.lengthOf(1);
+                res.body.should.have.lengthOf(3);
                 res.body[0].name.should.equal('eating');
                 res.body[0].frequency.should.equal(3);
+                res.body[1].name.should.equal('drinking');
+                res.body[1].frequency.should.equal(2);
+                res.body[2].name.should.equal('coding');
+                res.body[2].frequency.should.equal(100);
                 done();
             })
         });
         it('should return an array of activity info as it is incomplete', function(done){
             chai.request(app)
-            .get(`/activity?user=${testID}&complete=false`)
+            .get(`/activity?user=${user1}&complete=false`)
             .end(function(err, res){
                 res.body.should.have.lengthOf(1);
                 res.body[0].name.should.equal('eating');
                 res.body[0].frequency.should.equal(3);
+                res.body[0].completedTodayNum.should.equal(0);
                 done();
             })
         });
-        it('should return zero activity info as none are complete', function(done){
+        it('should return 1 activity info as one are complete', function(done){
             chai.request(app)
-            .get(`/activity?user=${testID}&complete=true`)
+            .get(`/activity?user=${user1}&complete=true`)
             .end(function(err, res){
-                res.body.should.have.lengthOf(0);
+                res.body.should.have.lengthOf(2);
+                res.body[0].name.should.equal('drinking');
+                res.body[0].frequency.should.equal(2);
+                res.body[0].completedTodayNum.should.equal(0);
+                res.body[1].name.should.equal('coding');
+                res.body[1].frequency.should.equal(100);
+                res.body[1].completedTodayNum.should.equal(0);
                 done();
             })
         });
         it('should return nothing when parameters are incorrectly inputted', function(done){
             chai.request(app)
-            .get(`/activity?user=${testID}&complete=wrong`)
+            .get(`/activity?user=${user1}&complete=wrong`)
             .end(function(err, res){
                 res.body.should.have.lengthOf(0);
                 done();
             })
         });
-    })
+    });
+    describe('put /activity/complete/:activityID', function(){
+        it('should increment completedToday by 1', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity1}`)
+            .end(function(err, res){
+                res.should.have.status(200);
+                res.body.completedTodayNum.should.equal(1);
+                done();
+            });
+        });
+        it('should increment completedToday to 2', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity1}`)
+            .end(function(err, res){
+                res.should.have.status(200);
+                res.body.completedTodayNum.should.equal(2);
+                done();
+            });
+        });
+        it('should streak++, mark event as complete for today', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity1}`)
+            .end(function(err, res){
+                res.should.have.status(200);
+                res.body.completedTodayNum.should.equal(0);
+                res.body.streak.should.equal(1);
+                res.body.completedToday.should.equal(true);
+                done();
+            });
+        });
+        it('should return message saying task is already complete', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity1}`)
+            .end(function(err, res){
+                res.should.be.json;
+                res.body.message.should.equal("Task already completed for today");
+                done();
+            });
+        });
+        it('should update streaking habit', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity2}`)
+            .end(function(err, res){
+                res.should.be.json;
+                res.body.completedTodayNum.should.equal(1);
+                res.body.completedToday.should.equal(false);
+                res.body.streak.should.equal(1);
+                done();
+            });
+        });
+        it('should update outdated habit', function(done){
+            chai.request(app)
+            .put(`/activity/complete/${activity3}`)
+            .end(function(err, res){
+                res.should.be.json;
+                res.body.completedTodayNum.should.equal(1);
+                res.body.completedToday.should.equal(false);
+                res.body.streak.should.equal(0);
+                done();
+            });
+        });
+    });
 });
 
 

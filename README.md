@@ -32,16 +32,25 @@
 - Flesh out routes that have been listed out below (tested)
 
 ## DB structure
-- Person 1
-    - Name: X
-    - Activity: [
-        A1
-        A2
-        A3
-    ]
-- Person 2
-    ..
+* Each document in both collections have a reference to each other (U1 = User 1, A1 = activity 1)
+* This is so that the populate method of mongoose can be used 
 
+- User
+    - User 1
+        - Name: X
+        - Activity: [
+            A1
+            A2
+            A3
+        ]
+    - User 2
+        ..
+
+- Activity
+    - Activity 1
+        - U1
+    - Activity 2
+        - U2
 
 # Evaluating completion when updating task
 - Timeframe: daily only
