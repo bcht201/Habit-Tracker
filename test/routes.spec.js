@@ -255,6 +255,70 @@ describe('Test suite: API Routes', function (){
             });
         });
     });
+    describe('put /activity/edit?activity=ID&field=name&newData=newEntry', function(){
+        it('should return error with missing field: Activity ID', function(done){
+            chai.request(app)
+            .put(`/activity/edit?field=name&newData=crying`)
+            .end(function(err, res){
+                console.log(res);
+                res.should.have.status(500);
+                res.text.should.equal('Please ensure all necessary queries are in request');
+                done();
+            });
+        });
+        it('should return error with missing field: Data', function(done){
+            chai.request(app)
+            .put(`/activity/edit?activity=${activity3}&field=name`)
+            .end(function(err, res){
+                console.log(res);
+                res.should.have.status(500);
+                res.text.should.equal('Please ensure all necessary queries are in request');
+                done();
+            });
+        });
+        // it('should return error with missing field: Field name', function(done){
+        //     chai.request(app)
+        //     .put(`/activity/edit?activity=${activity3}&newData=crying`)
+        //     .end(function(err, res){
+        //         console.log(res);
+        //         res.should.have.status(500);
+        //         res.text.should.equal('Please ensure all necessary queries are in request');
+        //         done();
+        //     });
+        // });
+        it('should update activity field with new data', function(done){
+            chai.request(app)
+            .put(`/activity/edit?activity=${activity3}&field=name&newData=crying`)
+            .end(function(err, res){
+                res.should.have.status(200);
+                res.body.name.should.equal('crying');
+                done();
+            });
+        });
+    });
+    describe('delete /:activityID', function(){
+        it('should delete a field when ID is provided and valid', function(done){
+            chai.request(app)
+            .delete(`/activity/${activity2}`)
+            .end(function (err, res){
+                res.should.have.status(200);
+                done();
+            })
+        })
+        it('should return 2 items when calling all activities', function(done){
+            chai.request(app)
+            .get(`/activity?user=${user1}`)
+            .end(function(err, res){
+                console.log(res);
+                res.body.should.have.lengthOf(2);
+                res.body[0].name.should.equal('eating');
+                res.body[0].frequency.should.equal(3);
+                res.body[1].name.should.equal('crying');
+                res.body[1].frequency.should.equal(100);
+                done();
+            })
+        })
+    })
 });
 
 

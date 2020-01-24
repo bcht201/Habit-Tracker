@@ -12,14 +12,14 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const getAllUsers = (req, res) =>{
     User.find({}, 'name', (err, entries)=>{
-        if(err) console.log(err);
+        // if(err) console.log(err);
         res.json(entries);
     });
 };
 
 const getSpecificUser = (req, res)=>{
     User.find({_id: req.params.ID}, 'name', (err, entries)=>{
-        if(err) console.log(err);
+        // if(err) console.log(err);
         res.json(entries);
     });
 }
@@ -37,7 +37,7 @@ const addUser = (req, res) =>{
         });
     }
     else{
-        res.redirect('/users');
+        res.status(500).send("name is missing");
     }
     
 }
@@ -70,10 +70,10 @@ const newActivity = (req, res)=>{
         streak: streakVal
     });
     activityObj.save().then((addedActivity) =>{
-        console.log(addedActivity);
+        // console.log(addedActivity);
         User.findOneAndUpdate({_id: addedActivity.userID}, {$push: {activities: addedActivity._id}}, {new:true})
             .then(updatedUser =>{
-                console.log('updated user json', updatedUser);
+                // console.log('updated user json', updatedUser);
                 res.send(updatedUser);
             });
     });
@@ -82,13 +82,13 @@ const newActivity = (req, res)=>{
 const getUserActivities = (req, res)=>{
     if(req.query.complete && req.query.user){
         Activity.find({userID : req.query.user, completedToday: req.query.complete}, (err, results) =>{
-            if (err) console.log(err);
+            // if (err) console.log(err);
             res.json(results);
         })
     }
     else if(req.query.user){
         Activity.find({userID : req.query.user}, (err, results) =>{
-            if (err) console.log(err);
+            // if (err) console.log(err);
             res.json(results);
         })
     }
@@ -101,12 +101,12 @@ const getUserActivities = (req, res)=>{
 
 const completeActivity = (req, res) =>{
     let activityID = req.params.activityID;
-    console.log('updating activity');
+    // console.log('updating activity');
     //Implement check/ update on fetch of activites as well
     Activity.find({_id: activityID}, (err, results) =>{
         if(err) res.status(500).send(err);
         if(results[0].completedToday === true && moment().isBefore(results[0].deadline)){
-            console.log("already done today");
+            // console.log("already done today");
             res.json({
                 message: "Task already completed for today"
             });
@@ -114,7 +114,7 @@ const completeActivity = (req, res) =>{
         else{
             Activity.findOneAndUpdate({_id: activityID}, { $set: changes(results)}, {new:true})
             .then((updatedActivity) =>{
-                console.log('updated activity', updatedActivity);
+                // console.log('updated activity', updatedActivity);
                 res.status(200).send(updatedActivity);
             })
         }
@@ -140,7 +140,7 @@ const changes = (activity) =>{
     //Not completed && before deadline
     else if(moment().isBefore(activity[0].deadline)){
         if(completedTodayAdd1 === activity[0].frequency){
-            console.log('streaking');
+            // console.log('streaking');
             changes.streak = streakAdd1;
             changes.completedTodayNum = 0;
             changes.completedToday = true;
@@ -148,12 +148,47 @@ const changes = (activity) =>{
         }
         //Not completed && before deadline == +1 
         else{
-            console.log('+1 task frequency');
+            // console.log('+1 task frequency');
             changes.completedTodayNum = completedTodayAdd1;
         }
     }
     changes.deadline = moment().add(1 ,'days').startOf('day').toDate();
     return changes;
+}
+
+const updateActivity = (req, res) =>{
+    let changedField = req.query.field.toString();
+    let newData = req.query.newData;
+
+    if(!req.query.activity || !req.query.field || !req.query.newData){
+        res.status(500).send('Please ensure all necessary queries are in request')
+    }
+
+    //Associative array
+    let changes = {};
+    //Set array key as changedField to have value of new data 
+    changes[changedField] = newData;
+
+    //Set a key value pair, before was setting an object in an object
+    Activity.findOneAndUpdate({_id: req.query.activity}, {$set: changes}, {new: true})
+    .then(updatedActivity =>{
+        console.log(updatedActivity);
+        res.status(200).send(updatedActivity);
+    })
+}
+
+const deleteActivity = (req, res)=>{
+    if(!req.params.activityID){
+        res.status(500).send('Please specify activity to delete');
+    }
+    Activity.findByIdAndDelete( req.params.activityID, function (err, data){
+        if(err) res.status(500).send(err) 
+        else{
+            console.log(data);
+            res.status(200).send(data);
+        }
+        
+    })
 }
 
 module.exports = {
@@ -162,5 +197,7 @@ module.exports = {
     addUser,
     newActivity,
     getUserActivities,
-    completeActivity
+    completeActivity,
+    updateActivity,
+    deleteActivity
 }

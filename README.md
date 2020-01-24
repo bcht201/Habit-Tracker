@@ -86,5 +86,7 @@
 - GET: ?user=ID -> get all activities of a specific user
 - GET: ?user=ID&complete=true -> get all completed activities of a specific user
 - GET: ?user=ID&complete=false -> get all incomplete activities of a specific user
+- PUT: /complete/:activityID -> mark an activity as completed once. This can be done up to the specified frequency of that activity.
+- PUT: /edit?activity=ID&field=name&new=newData -> update a certain field of an activity
 - POST: /new -> add new activity to DB  
 * require Name of activity(req.body.name), Which user to add to(req.body.userID), frequency per day(req.body.frequency)
