@@ -1,5 +1,4 @@
 # Lap 3 Project
-
 ## For 3 days you will be working to create a habit tracker.
 
 ### What does it do? 
@@ -55,7 +54,7 @@
 ## Stage 3
 - Build remaining CRUD routes 
 
-## DB structure
+# DB structure
 * Each document in both collections have a reference to each other (U1 = User 1, A1 = activity 1)
 * This is so that the populate method of mongoose can be used 
 
@@ -99,3 +98,11 @@
 - Current time is after deadline > 1 day == reset (streak broken)
 - Current time is after deadline < 1 day && completed == keep streak, reset for new day
 - Current time is after deadline < 1 day && !completed == reset, streak broken
+
+
+# Things to expand on if there was more time
+- Front end -> React app front end with views/ forms that interacted directly with the API 
+- Status codes -> currently done sporadically but would have been ideally used in all the routes as best practice
+- Defensive coding -> Ensuring everything can fail gracefully, currently implemented in most but not all parts of code
+- Log in system -> currently API just has a collection of users and must specify the userID when accessing activities.
+- Seeding route -> TDD meant I indirectly seeded the test database when I was trying out different routes. Seeding would have involved the routes that I was testing for anyways so it did not make sense to seed and then test. Having this route would be better to see the API directly in action though...

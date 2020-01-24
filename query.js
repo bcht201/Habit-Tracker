@@ -12,14 +12,14 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const getAllUsers = (req, res) =>{
     User.find({}, 'name', (err, entries)=>{
-        // if(err) console.log(err);
+        if(err) console.log(err);
         res.json(entries);
     });
 };
 
 const getSpecificUser = (req, res)=>{
     User.find({_id: req.params.ID}, 'name', (err, entries)=>{
-        // if(err) console.log(err);
+        if(err) console.log(err);
         res.json(entries);
     });
 }
@@ -70,10 +70,9 @@ const newActivity = (req, res)=>{
         streak: streakVal
     });
     activityObj.save().then((addedActivity) =>{
-        // console.log(addedActivity);
+        console.log(addedActivity);
         User.findOneAndUpdate({_id: addedActivity.userID}, {$push: {activities: addedActivity._id}}, {new:true})
             .then(updatedUser =>{
-                // console.log('updated user json', updatedUser);
                 res.send(updatedUser);
             });
     });
@@ -82,13 +81,13 @@ const newActivity = (req, res)=>{
 const getUserActivities = (req, res)=>{
     if(req.query.complete && req.query.user){
         Activity.find({userID : req.query.user, completedToday: req.query.complete}, (err, results) =>{
-            // if (err) console.log(err);
+            if (err) console.log(err);
             res.json(results);
         })
     }
     else if(req.query.user){
         Activity.find({userID : req.query.user}, (err, results) =>{
-            // if (err) console.log(err);
+            if (err) console.log(err);
             res.json(results);
         })
     }
@@ -101,12 +100,10 @@ const getUserActivities = (req, res)=>{
 
 const completeActivity = (req, res) =>{
     let activityID = req.params.activityID;
-    // console.log('updating activity');
     //Implement check/ update on fetch of activites as well
     Activity.find({_id: activityID}, (err, results) =>{
         if(err) res.status(500).send(err);
         if(results[0].completedToday === true && moment().isBefore(results[0].deadline)){
-            // console.log("already done today");
             res.json({
                 message: "Task already completed for today"
             });
@@ -114,7 +111,6 @@ const completeActivity = (req, res) =>{
         else{
             Activity.findOneAndUpdate({_id: activityID}, { $set: changes(results)}, {new:true})
             .then((updatedActivity) =>{
-                // console.log('updated activity', updatedActivity);
                 res.status(200).send(updatedActivity);
             })
         }
@@ -172,7 +168,6 @@ const updateActivity = (req, res) =>{
     //Set a key value pair, before was setting an object in an object
     Activity.findOneAndUpdate({_id: req.query.activity}, {$set: changes}, {new: true})
     .then(updatedActivity =>{
-        console.log(updatedActivity);
         res.status(200).send(updatedActivity);
     })
 }
@@ -184,7 +179,6 @@ const deleteActivity = (req, res)=>{
     Activity.findByIdAndDelete( req.params.activityID, function (err, data){
         if(err) res.status(500).send(err) 
         else{
-            console.log(data);
             res.status(200).send(data);
         }
         

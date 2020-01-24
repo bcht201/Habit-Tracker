@@ -309,7 +309,6 @@ describe('Test suite: API Routes', function (){
             chai.request(app)
             .get(`/activity?user=${user1}`)
             .end(function(err, res){
-                console.log(res);
                 res.body.should.have.lengthOf(2);
                 res.body[0].name.should.equal('eating');
                 res.body[0].frequency.should.equal(3);
