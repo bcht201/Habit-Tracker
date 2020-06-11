@@ -27,7 +27,7 @@
 - npm test- run test suite for all the routes of the API
 
 # Routes
-## /user:
+## /users:
 - GET: / -> get all users in the database
 - GET: /:ID -> get a specific user in the database
 - POST: /addUser -> add new user to DB, requires req.body.name
